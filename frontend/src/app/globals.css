@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #090A3D;
+  --color-primary-dark: #07083D;
+  --color-accent: #33CBF4;
+  --color-secondary: #2074AA;
+  --color-secondary-muted: #2D5585;
+}
+
+body {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+/* White calendar/date picker icons on dark backgrounds */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
+
+/* Prevent double-tap zoom on interactive elements */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-primary-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-secondary-muted);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}
+
+/* Hidden-scrollbar horizontal scroll containers */
+.scroll-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area support for notched phones */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Custom utility classes */
+@layer components {
+  .btn-primary {
+    @apply bg-accent hover:bg-accent-hover active:bg-accent-hover text-primary font-semibold px-4 py-2.5 rounded-lg transition-all min-h-[44px] active:scale-[0.97];
+  }
+
+  .btn-secondary {
+    @apply bg-secondary-muted hover:bg-secondary active:bg-secondary text-white font-semibold px-4 py-2.5 rounded-lg transition-all min-h-[44px] active:scale-[0.97];
+  }
+
+  .card {
+    @apply bg-primary-dark rounded-xl p-4 border border-secondary-muted;
+  }
+
+  .input,
+  .input-field {
+    @apply bg-primary-dark border border-secondary-muted rounded-lg px-3 py-2.5 text-base text-white font-body focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent min-h-[44px];
+  }
+
+  .select {
+    @apply bg-primary-dark border border-secondary-muted rounded-lg px-3 py-2.5 text-base text-white font-body focus:border-accent focus:outline-none cursor-pointer min-h-[44px];
+  }
+
+  /* Section heading style — Chakra Petch uppercase */
+  .section-title {
+    @apply font-heading font-semibold uppercase tracking-wider text-accent;
+  }
+}
+
+/* Report print layout — white background for PDF export */
+.report-print-layout {
+  background: white;
+  color: #111;
+  font-family: var(--font-roboto), 'Roboto', sans-serif;
+  max-width: 800px;
+  padding: 40px;
+}
+.report-print-layout .report-section-title {
+  color: #090A3D;
+  border-bottom: 2px solid #33CBF4;
+  padding-bottom: 4px;
+  font-family: var(--font-chakra), 'Chakra Petch', sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+.report-section {
+  page-break-inside: avoid;
+  margin-bottom: 24px;
+}
+.report-print-layout table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.report-print-layout th {
+  background: #f0f4f8;
+  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+  text-align: left;
+  font-weight: 600;
+  color: #090A3D;
+}
+.report-print-layout td {
+  border: 1px solid #d1d5db;
+  padding: 6px 10px;
+}
+.report-notes {
+  background: #f8fafc;
+  border-left: 3px solid #33CBF4;
+  padding: 10px 14px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: #333;
+  white-space: pre-wrap;
+}
+@media print {
+  .no-print { display: none !important; }
+}

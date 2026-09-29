@@ -1,0 +1,1 @@
+"""BSAMS Backend Application."""

@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.env
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+.next/
+.turbo/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test/Cache
+.pytest_cache/
+.coverage
+htmlcov/
+coverage/
+.nyc_output/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Claude Code local settings
+.claude/
+
+# Local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Data files (athlete data — never commit)
+*.csv
+*.xlsx
+*.xls
+*:Zone.Identifier
+~$*
+
+# Local build artefacts
+.venv/
+*.tsbuildinfo

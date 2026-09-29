@@ -1,0 +1,23 @@
+{
+  "name": "BSAMS - Boxing Science Athlete Management",
+  "short_name": "BSAMS",
+  "description": "High-performance athlete management and testing analysis",
+  "start_url": "/testing",
+  "display": "standalone",
+  "background_color": "#090A3D",
+  "theme_color": "#090A3D",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

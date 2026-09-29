@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#090A3D" />
+  <title>BSAMS — Offline</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #090A3D;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .card {
+      text-align: center;
+      max-width: 400px;
+      width: 100%;
+      background: #07083D;
+      border: 1px solid #2D5585;
+      border-radius: 12px;
+      padding: 2.5rem 2rem;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #33CBF4;
+      margin-bottom: 1.5rem;
+    }
+    .icon {
+      margin: 0 auto 1.25rem;
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+    .btn {
+      display: inline-block;
+      background: #33CBF4;
+      color: #090A3D;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 0.65rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      min-height: 44px;
+      min-width: 44px;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:active { opacity: 0.8; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">BSAMS</div>
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"
+         fill="none" stroke="#2D5585" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="1" y1="1" x2="23" y2="23" />
+      <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55" />
+      <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39" />
+      <path d="M10.71 5.05A16 16 0 0 1 22.56 9" />
+      <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88" />
+      <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+      <line x1="12" y1="20" x2="12.01" y2="20" />
+    </svg>
+    <h1>You are offline</h1>
+    <p>Check your internet connection — this page comes back on its own. Anything typed but not yet saved was not recorded. When you are back online, check what was logged and re-enter anything missing.</p>
+    <button class="btn" onclick="window.location.reload()">Try Again</button>
+  </div>
+  <script>
+    // The kiosk TV and the station iPads have nobody standing at them, so this page has
+    // to get itself back: the browser's online event covers a normal wifi return, and a
+    // HEAD probe of this same URL covers the cases where it never fires (captive portal,
+    // an access point that wakes without a state change).
+    (function () {
+      var PROBE_MS = 10000;
+      var reloading = false;
+
+      function reload() {
+        if (reloading) return;
+        reloading = true;
+        window.location.reload();
+      }
+
+      function probe() {
+        window.fetch(window.location.href, { method: 'HEAD', cache: 'no-store' })
+          .then(function (response) {
+            if (response && response.ok) reload();
+          })
+          .catch(function () {
+            // Still offline — the next probe tries again.
+          });
+      }
+
+      window.addEventListener('online', reload);
+      window.setInterval(probe, PROBE_MS);
+    })();
+  </script>
+</body>
+</html>
