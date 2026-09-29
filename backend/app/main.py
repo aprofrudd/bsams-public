@@ -15,7 +15,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.core.config import get_settings
 from app.core.supabase_client import get_supabase_client
-from app.routers import admin, air_bike, analysis, assessments, athletes, auth, combine, consent, consent_tracking, custom_training_types, database_analysis, events, exercise_library, exercises, data_export, invitations, programme_forms, programs, reports, session_templates, training, training_blocks, uploads, wellness
+from app.routers import admin, air_bike, analysis, assessments, athletes, auth, combine, consent, consent_tracking, custom_training_types, database_analysis, events, exercise_library, exercises, data_export, invitations, lactate, metabolic, programme_forms, programs, reports, session_templates, training, training_blocks, uploads, vbt, wellness
 
 settings = get_settings()
 
@@ -139,7 +139,10 @@ app.include_router(wellness.router, prefix=settings.api_v1_prefix)
 app.include_router(exercise_library.router, prefix=settings.api_v1_prefix)
 app.include_router(session_templates.router, prefix=settings.api_v1_prefix)
 app.include_router(programs.router, prefix=settings.api_v1_prefix)
+app.include_router(vbt.router, prefix=settings.api_v1_prefix)
+app.include_router(lactate.router, prefix=settings.api_v1_prefix)
 app.include_router(air_bike.router, prefix=settings.api_v1_prefix)
+app.include_router(metabolic.router, prefix=settings.api_v1_prefix)
 app.include_router(assessments.router, prefix=settings.api_v1_prefix)
 app.include_router(reports.router, prefix=settings.api_v1_prefix)
 app.include_router(invitations.router, prefix=settings.api_v1_prefix)

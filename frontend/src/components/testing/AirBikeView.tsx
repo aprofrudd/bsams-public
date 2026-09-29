@@ -5,10 +5,11 @@ import { airBikeApi } from '@/lib/api';
 import { AirBikeTestForm } from './AirBikeTestForm';
 import { AirBikeChart } from './AirBikeChart';
 import { BleRecordingsTab } from './BleRecordingsTab';
+import { MetabolicProfilesTab } from './MetabolicProfilesTab';
 import type { AirBikeTestListItem, AirBikeTest, AirBikeSprint } from '@/lib/types';
 import { sprintMidPower, sprintMaxPower, sprintMidSeconds } from '@/lib/airBikeSplits';
 
-type AirBikeSubTab = 'sprint-tests' | 'ble-recordings';
+type AirBikeSubTab = 'sprint-tests' | 'ble-recordings' | 'metabolic-profiles';
 
 interface AirBikeViewProps {
   athleteId: string;
@@ -299,12 +300,13 @@ function SprintResultsTable({
   );
 }
 
-export function AirBikeView({ athleteId, readOnly }: AirBikeViewProps) {
+export function AirBikeView({ athleteId, athleteWeight, readOnly }: AirBikeViewProps) {
   const [subTab, setSubTab] = useState<AirBikeSubTab>('sprint-tests');
 
   const SUB_TABS: { key: AirBikeSubTab; label: string }[] = [
     { key: 'sprint-tests', label: 'Sprint Tests' },
     { key: 'ble-recordings', label: 'BLE Recordings' },
+    { key: 'metabolic-profiles', label: 'Metabolic Profiles' },
   ];
 
   return (
@@ -332,6 +334,13 @@ export function AirBikeView({ athleteId, readOnly }: AirBikeViewProps) {
       )}
       {subTab === 'ble-recordings' && (
         <BleRecordingsTab athleteId={athleteId} readOnly={readOnly} />
+      )}
+      {subTab === 'metabolic-profiles' && (
+        <MetabolicProfilesTab
+          athleteId={athleteId}
+          athleteWeight={athleteWeight}
+          readOnly={readOnly}
+        />
       )}
     </div>
   );

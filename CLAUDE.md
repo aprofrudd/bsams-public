@@ -18,7 +18,7 @@ Boxing Science Athlete Management System (BSAMS) - A commercial SaaS for high-pe
 cd backend
 pip install -r requirements.txt
 python -m uvicorn app.main:app --reload  # Dev server
-pytest -v                                 # Run all tests (~1270)
+pytest -v                                 # Run all tests (~1430)
 pytest tests/test_stat_engine.py -v      # Run specific test file
 ```
 
@@ -74,16 +74,16 @@ npm test         # Run tests
 - `exercise_prescriptions` — FK training_sessions CASCADE, conditioning fields, intensity_min/intensity_max range
 - `exercise_library` — UNIQUE(coach_id, exercise_name), defaults for autocomplete. Pre-seeded with 361 exercises (admin-owned) from programme spreadsheets
 - `session_templates` + `template_exercises` — reusable plans, soft FK to library. Gold-standard conditioning templates: template_category, tier, description
-- `vbt_profiles` + `vbt_sets` — velocity data (written by combine landmine promotion)
+- `vbt_profiles` + `vbt_sets` — load-velocity profiling, regression on-read
 - `movement_assessments` + `assessment_photos` — NASM screening, Supabase Storage
-- `lactate_tests` + `lactate_stages` — lactate test data
-- `gas_analysis_data` — gas analysis data linked to lactate tests
+- `lactate_tests` + `lactate_stages` — piecewise regression for LT1/LT2
+- `gas_analysis_data` — CPET gas analysis (1:1 with lactate_tests), JSONB samples + stage_averages, fat max, VO2max
 - `air_bike_tests` + `air_bike_sprints` — 7s/14s/27s power decay
 - `air_bike_recordings` — BLE standard mode captures with JSONB samples + computed summary stats
-- `metabolic_profiles` — stored air bike profile results (read by the conditioning engine)
+- `metabolic_profiles` — Ferretti/di Prampero 3-sprint protocol with energy system breakdown, trim support
 - `program_packages` + `program_templates` + `program_installations` — marketplace programs with JSONB exercises, install=access model
 - `training_blocks` + `block_sessions` — coach-owned multi-week program definitions with JSONB exercises, percent_1rm support
-- `athlete_maxes` — per-athlete 1RM records, used for percentage-based loading
+- `athlete_maxes` — per-athlete 1RM records (manual or VBT), used for percentage-based loading
 - `block_applications` — audit trail of block deployments to athletes
 - `athlete_invitations` — 8-char codes, 7-day expiry
 - `test_reports` — JSONB sections/notes, coach/admin only
@@ -102,8 +102,11 @@ npm test         # Run tests
 - **Training:** session CRUD, exercise prescriptions (nested), training load analysis
 - **Wellness:** entry CRUD, list by athlete
 - **Library:** exercise library CRUD (?search=, ?category=), session template CRUD, template apply
+- **VBT:** profile CRUD with nested sets + analysis, bidirectional predict
 - **Assessments:** movement assessment CRUD, photo upload/delete, signed URLs
+- **Lactate:** test CRUD with stages + analysis, auto-detect LT1/LT2, gas analysis upload/preview/get/delete (CPET)
 - **Air Bike:** test CRUD with nested sprints, BLE recording CRUD (create/list/get/delete)
+- **Metabolic:** profile CRUD with engine computation, PATCH for trim recalculation (BLE only)
 - **Reports:** test report CRUD (coach/admin only)
 - **Combine:** event CRUD, share token rotate/revoke, roster bulk import (dry-run first), attempt submit/correct/void, station roster, leaderboard, admin-only norms refresh, idempotent sync, and an unauthenticated `GET /combine/public/{token}` board
 - **Admin:** shared-athletes (anonymised), shared-athletes events
@@ -116,8 +119,8 @@ npm test         # Run tests
 
 ```
 backend/app/
-├── routers/     # auth, athletes, events, uploads, analysis, consent, consent_tracking, admin, combine, training, exercises, wellness, exercise_library, session_templates, programs, training_blocks, assessments, air_bike, reports, invitations, data_export
-├── services/    # csv_ingestion, stat_engine, benchmarks, admin_pool, training_load, block_engine, conditioning_engine, combine_engine, combine_promotion, combine_norms, audit
+├── routers/     # auth, athletes, events, uploads, analysis, consent, consent_tracking, admin, combine, training, exercises, wellness, exercise_library, session_templates, programs, training_blocks, vbt, assessments, lactate, air_bike, metabolic, reports, invitations, data_export
+├── services/    # csv_ingestion, stat_engine, benchmarks, admin_pool, training_load, vbt_engine, block_engine, lactate_engine, metabolic_engine, conditioning_engine, combine_engine, combine_promotion, combine_norms, cpet_parser, cpet_engine, audit
 ├── schemas/     # Pydantic models per domain
 └── core/        # Config, Supabase client, security (JWT validation)
 ```
@@ -127,8 +130,13 @@ backend/app/
 - **StatEngine:** Z-score calculation, benchmarks (Mean, Mode, SD, 95% CI)
 - **Ingestion:** CSV parsing (DD/MM/YYYY, BOM handling, auto-create athletes)
 - **TrainingLoadEngine:** sRPE, Monotony, Strain, ACWR (optimal 0.8-1.3, danger >1.5)
+- **VbtEngine:** Linear regression, 1RM prediction via MVT, bidirectional prediction
+- **LactateEngine:** Piecewise 3-segment regression for LT1/LT2 breakpoint detection
+- **MetabolicEngine:** Ferretti/di Prampero 3-sprint protocol — sum_watts, alactic capacity, max glycolytic power, energy system breakdown, insights
 - **CombineEngine:** per-station bests, cohort stats, competition ranking, within-cohort z, Boxing Science bands, Combine Score. Pure functions — no DB I/O, so the ranking maths is unit-testable
 - **ConditioningEngine:** Tier-based intensity resolution for conditioning templates. Resolves target power ranges from metabolic profiles > BLE recordings > sprint tests
+- **CpetParser:** Excel/CSV parsing for metabolic cart data (MetaSoft, COSMED, Cortex). Flexible column aliases, stage detection (cycling by power, running by time-boundaries), configurable averaging (last_60s/full_stage)
+- **CpetEngine:** Fat max detection, threshold metric interpolation, CHO/FAT crossover, VO2max. TypeScript mirror in `cpetAnalysis.ts`
 
 ## Multi-Tenant System
 

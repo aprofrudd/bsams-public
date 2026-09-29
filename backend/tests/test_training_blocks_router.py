@@ -600,6 +600,9 @@ class TestApplyBlock:
             created_sessions_resp.data = [
                 {"id": session_id, "athlete_id": SAMPLE_ATHLETE_ID}
             ]
+            # VBT profile check (empty = no VBT)
+            vbt_empty = MagicMock()
+            vbt_empty.data = []
             # athlete_maxes check (empty = no manual max)
             maxes_empty = MagicMock()
             maxes_empty.data = []
@@ -616,6 +619,7 @@ class TestApplyBlock:
                 athletes_resp,    # verify athletes
                 sessions_query_resp,  # load block sessions
                 created_sessions_resp,  # bulk insert sessions
+                vbt_empty,        # VBT profile check
                 maxes_empty,      # athlete_maxes check
                 prescriptions_resp,  # bulk insert prescriptions
                 app_resp,         # audit trail
@@ -747,7 +751,9 @@ class TestPreviewBlock:
             athletes_resp.data = [athlete]
             sessions_resp = MagicMock()
             sessions_resp.data = [block_session]
-            # no recorded max
+            # VBT empty, maxes empty
+            vbt_empty = MagicMock()
+            vbt_empty.data = []
             maxes_empty = MagicMock()
             maxes_empty.data = []
 
@@ -756,6 +762,7 @@ class TestPreviewBlock:
                 block_resp,
                 athletes_resp,
                 sessions_resp,
+                vbt_empty,
                 maxes_empty,
             ]
 

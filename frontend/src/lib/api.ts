@@ -28,6 +28,19 @@ import type {
   SessionTemplate,
   SessionTemplateCreate,
   SessionTemplateUpdate,
+  VbtProfile,
+  VbtProfileListItem,
+  VbtProfileCreate,
+  VbtProfileUpdate,
+  VbtPredictionRequest,
+  VbtPredictionResponse,
+  LactateTest,
+  LactateTestListItem,
+  LactateTestCreate,
+  LactateTestUpdate,
+  LactateAutoDetectResponse,
+  GasAnalysisPreview,
+  GasAnalysisData,
   AirBikeTest,
   AirBikeTestListItem,
   AirBikeTestCreate,
@@ -54,6 +67,10 @@ import type {
   AirBikeRecording,
   AirBikeRecordingCreate,
   AirBikeRecordingListItem,
+  MetabolicProfile,
+  MetabolicProfileCreate,
+  MetabolicProfileUpdate,
+  MetabolicProfileListItem,
   TrainingBlock,
   TrainingBlockDetail,
   TrainingBlockCreate,
@@ -635,6 +652,122 @@ export const sessionTemplatesApi = {
     ),
 };
 
+// VBT API
+export const vbtApi = {
+  listProfiles: (athleteId: string, exerciseName?: string) => {
+    const params = new URLSearchParams();
+    if (exerciseName) params.set('exercise_name', exerciseName);
+    const query = params.toString();
+    return fetchApi<VbtProfileListItem[]>(
+      `/vbt/profiles/athlete/${athleteId}${query ? `?${query}` : ''}`
+    );
+  },
+
+  getProfile: (profileId: string) =>
+    fetchApi<VbtProfile>(`/vbt/profiles/${profileId}`),
+
+  createProfile: (athleteId: string, data: VbtProfileCreate) =>
+    fetchApi<VbtProfile>(`/vbt/profiles?athlete_id=${athleteId}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateProfile: (profileId: string, data: VbtProfileUpdate) =>
+    fetchApi<VbtProfile>(`/vbt/profiles/${profileId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteProfile: (profileId: string) =>
+    fetchApi<void>(`/vbt/profiles/${profileId}`, { method: 'DELETE' }),
+
+  predict: (profileId: string, data: VbtPredictionRequest) =>
+    fetchApi<VbtPredictionResponse>(`/vbt/profiles/${profileId}/predict`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
+// Lactate Tests API
+export const lactateApi = {
+  listTests: (athleteId: string, testType?: string) => {
+    const params = new URLSearchParams();
+    if (testType) params.set('test_type', testType);
+    const query = params.toString();
+    return fetchApi<LactateTestListItem[]>(
+      `/lactate/tests/athlete/${athleteId}${query ? `?${query}` : ''}`
+    );
+  },
+
+  getTest: (testId: string) =>
+    fetchApi<LactateTest>(`/lactate/tests/${testId}`),
+
+  createTest: (athleteId: string, data: LactateTestCreate) =>
+    fetchApi<LactateTest>(`/lactate/tests?athlete_id=${athleteId}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateTest: (testId: string, data: LactateTestUpdate) =>
+    fetchApi<LactateTest>(`/lactate/tests/${testId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteTest: (testId: string) =>
+    fetchApi<void>(`/lactate/tests/${testId}`, { method: 'DELETE' }),
+
+  autoDetect: (testId: string) =>
+    fetchApi<LactateAutoDetectResponse>(`/lactate/tests/${testId}/detect`, {
+      method: 'POST',
+    }),
+
+  // Gas Analysis (CPET) endpoints
+  previewGasAnalysis: async (testId: string, file: File, config: {
+    stage_duration_seconds?: number;
+    rest_duration_seconds?: number;
+    rest_start_seconds?: number;
+    averaging_method?: string;
+  } = {}) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('stage_duration_seconds', String(config.stage_duration_seconds ?? 180));
+    formData.append('rest_duration_seconds', String(config.rest_duration_seconds ?? 60));
+    formData.append('rest_start_seconds', String(config.rest_start_seconds ?? 60));
+    formData.append('averaging_method', config.averaging_method ?? 'last_60s');
+    return fetchApi<GasAnalysisPreview>(`/lactate/tests/${testId}/gas-analysis/preview`, {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    });
+  },
+
+  uploadGasAnalysis: async (testId: string, file: File, config: {
+    stage_duration_seconds?: number;
+    rest_duration_seconds?: number;
+    rest_start_seconds?: number;
+    averaging_method?: string;
+  } = {}) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('stage_duration_seconds', String(config.stage_duration_seconds ?? 180));
+    formData.append('rest_duration_seconds', String(config.rest_duration_seconds ?? 60));
+    formData.append('rest_start_seconds', String(config.rest_start_seconds ?? 60));
+    formData.append('averaging_method', config.averaging_method ?? 'last_60s');
+    return fetchApi<GasAnalysisData>(`/lactate/tests/${testId}/gas-analysis`, {
+      method: 'POST',
+      body: formData,
+      headers: {},
+    });
+  },
+
+  getGasAnalysis: (testId: string) =>
+    fetchApi<GasAnalysisData>(`/lactate/tests/${testId}/gas-analysis`),
+
+  deleteGasAnalysis: (testId: string) =>
+    fetchApi<void>(`/lactate/tests/${testId}/gas-analysis`, { method: 'DELETE' }),
+};
+
 // Air Bike Tests API
 export const airBikeApi = {
   listTests: (athleteId: string) =>
@@ -882,6 +1015,30 @@ export const airBikeRecordingApi = {
 
   deleteRecording: (recordingId: string) =>
     fetchApi<void>(`/air-bike/recordings/${recordingId}`, { method: 'DELETE' }),
+};
+
+// Metabolic Profiles API
+export const metabolicApi = {
+  createProfile: (athleteId: string, data: MetabolicProfileCreate) =>
+    fetchApi<MetabolicProfile>(`/metabolic/profiles?athlete_id=${athleteId}`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  listProfiles: (athleteId: string) =>
+    fetchApi<MetabolicProfileListItem[]>(`/metabolic/profiles/athlete/${athleteId}`),
+
+  getProfile: (profileId: string) =>
+    fetchApi<MetabolicProfile>(`/metabolic/profiles/${profileId}`),
+
+  updateProfile: (profileId: string, data: MetabolicProfileUpdate) =>
+    fetchApi<MetabolicProfile>(`/metabolic/profiles/${profileId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteProfile: (profileId: string) =>
+    fetchApi<void>(`/metabolic/profiles/${profileId}`, { method: 'DELETE' }),
 };
 
 // Training Blocks API

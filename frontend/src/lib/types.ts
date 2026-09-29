@@ -504,6 +504,87 @@ export interface SessionTemplateUpdate {
   exercises?: TemplateExerciseCreate[];
 }
 
+// VBT Profile types
+export interface VbtSet {
+  id: string;
+  profile_id: string;
+  set_number: number;
+  load_kg: number;
+  mean_velocity_ms: number | null;
+  peak_velocity_ms: number | null;
+  reps: number | null;
+  created_at: string;
+}
+
+export interface VbtSetCreate {
+  load_kg: number;
+  mean_velocity_ms?: number;
+  peak_velocity_ms?: number;
+  reps?: number;
+}
+
+export interface VbtAnalysis {
+  slope: number;
+  intercept: number;
+  r_squared: number;
+  estimated_1rm_kg: number | null;
+  v0_ms: number | null;
+  mvt_used_ms: number;
+}
+
+export interface VbtProfile {
+  id: string;
+  athlete_id: string;
+  exercise_name: string;
+  profile_date: string;
+  mvt_ms: number | null;
+  notes: string | null;
+  sets: VbtSet[];
+  analysis: VbtAnalysis | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VbtProfileListItem {
+  id: string;
+  athlete_id: string;
+  exercise_name: string;
+  profile_date: string;
+  mvt_ms: number | null;
+  notes: string | null;
+  set_count: number;
+  analysis: VbtAnalysis | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface VbtProfileCreate {
+  exercise_name: string;
+  profile_date: string;
+  mvt_ms?: number;
+  notes?: string;
+  sets: VbtSetCreate[];
+}
+
+export interface VbtProfileUpdate {
+  exercise_name?: string;
+  profile_date?: string;
+  mvt_ms?: number;
+  notes?: string;
+  sets?: VbtSetCreate[];
+}
+
+export interface VbtPredictionRequest {
+  velocity_ms?: number;
+  percent_1rm?: number;
+}
+
+export interface VbtPredictionResponse {
+  predicted_load_kg: number | null;
+  predicted_velocity_ms: number | null;
+  percent_1rm: number | null;
+}
+
 // Movement Assessment types
 export interface AssessmentPhoto {
   id: string;
@@ -555,6 +636,172 @@ export interface MovementAssessmentUpdate {
   findings?: Record<string, any>;
   notes?: string;
   summary?: string;
+}
+
+// Lactate Test types
+export interface LactateStage {
+  id: string;
+  test_id: string;
+  stage_number: number;
+  intensity_value: number;
+  heart_rate_bpm: number | null;
+  blood_lactate_mmol: number;
+  rpe: number | null;
+  created_at: string;
+}
+
+export interface LactateStageCreate {
+  intensity_value: number;
+  heart_rate_bpm?: number;
+  blood_lactate_mmol: number;
+  rpe?: number;
+}
+
+export interface PiecewiseSegment {
+  start_x: number;
+  end_x: number;
+  slope: number;
+  intercept: number;
+}
+
+export interface LactateAnalysis {
+  suggested_lt1_value: number | null;
+  suggested_lt1_lactate: number | null;
+  suggested_lt2_value: number | null;
+  suggested_lt2_lactate: number | null;
+  segments: PiecewiseSegment[];
+  total_sse: number | null;
+  r_squared: number | null;
+}
+
+export interface GasSummary {
+  max_fat_oxidation_gh: number | null;
+  fat_max_intensity: number | null;
+}
+
+export interface LactateTest {
+  id: string;
+  athlete_id: string;
+  test_date: string;
+  test_type: 'running' | 'cycling';
+  lt1_value: number | null;
+  lt1_lactate: number | null;
+  lt1_hr: number | null;
+  lt2_value: number | null;
+  lt2_lactate: number | null;
+  lt2_hr: number | null;
+  notes: string | null;
+  stages: LactateStage[];
+  analysis: LactateAnalysis | null;
+  has_gas_analysis: boolean;
+  gas_summary: GasSummary | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LactateTestListItem {
+  id: string;
+  athlete_id: string;
+  test_date: string;
+  test_type: 'running' | 'cycling';
+  lt1_value: number | null;
+  lt1_lactate: number | null;
+  lt1_hr: number | null;
+  lt2_value: number | null;
+  lt2_lactate: number | null;
+  lt2_hr: number | null;
+  notes: string | null;
+  stage_count: number;
+  analysis: LactateAnalysis | null;
+  has_gas_analysis: boolean;
+  gas_summary: GasSummary | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LactateTestCreate {
+  test_date: string;
+  test_type: 'running' | 'cycling';
+  lt1_value?: number;
+  lt1_lactate?: number;
+  lt1_hr?: number;
+  lt2_value?: number;
+  lt2_lactate?: number;
+  lt2_hr?: number;
+  notes?: string;
+  stages: LactateStageCreate[];
+}
+
+export interface LactateTestUpdate {
+  test_date?: string;
+  test_type?: 'running' | 'cycling';
+  lt1_value?: number | null;
+  lt1_lactate?: number | null;
+  lt1_hr?: number | null;
+  lt2_value?: number | null;
+  lt2_lactate?: number | null;
+  lt2_hr?: number | null;
+  notes?: string;
+  stages?: LactateStageCreate[];
+}
+
+export interface LactateAutoDetectResponse {
+  analysis: LactateAnalysis;
+}
+
+// Gas Analysis (CPET) types
+export interface GasAnalysisStageSummary {
+  stage_number: number;
+  intensity_value: number | null;
+  avg_vo2_l_min: number | null;
+  avg_vo2_ml_kg_min: number | null;
+  avg_vco2_l_min: number | null;
+  avg_rer: number | null;
+  avg_ve_l_min: number | null;
+  avg_bf_per_min: number | null;
+  avg_vt_l: number | null;
+  avg_hr_bpm: number | null;
+  avg_fat_gh: number | null;
+  avg_cho_gh: number | null;
+  avg_ee_kcal_h: number | null;
+  avg_cho_ee_kcal_h: number | null;
+  avg_fat_ee_kcal_h: number | null;
+  data_point_count: number;
+}
+
+export interface GasAnalysisPreview {
+  interval_seconds: number;
+  stage_count: number;
+  sample_count: number;
+  columns_detected: string[];
+  column_mapping: Record<string, string>;
+  stage_averages: GasAnalysisStageSummary[];
+  fat_max: {
+    max_fat_oxidation_gh: number;
+    fat_max_stage_number: number;
+    fat_max_intensity: number | null;
+    fat_max_hr: number | null;
+  } | null;
+}
+
+export interface GasAnalysisData {
+  id: string;
+  test_id: string;
+  interval_seconds: number;
+  rest_start_seconds: number | null;
+  stage_duration_seconds: number | null;
+  rest_duration_seconds: number | null;
+  averaging_method: string | null;
+  samples: Record<string, number | null>[];
+  stage_averages: GasAnalysisStageSummary[];
+  column_mapping: Record<string, string> | null;
+  max_fat_oxidation_gh: number | null;
+  fat_max_stage_number: number | null;
+  fat_max_intensity: number | null;
+  fat_max_hr: number | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // Air Bike Sprint Test types
@@ -829,6 +1076,88 @@ export interface AirBikeRecordingListItem {
   peak_power_w: number | null;
   total_work_j: number | null;
   notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Metabolic Profile types
+export interface PowerSample {
+  elapsed_ms: number;
+  watts: number;
+}
+
+export interface MetabolicProfileCreate {
+  test_date: string;
+  body_mass_kg: number;
+  data_source: 'ble' | 'manual';
+  resting_lactate_mmol: number;
+  la_peak_1_mmol: number;
+  la_peak_2_mmol: number;
+  la_peak_3_mmol: number;
+  sprint_1_avg_power_w?: number;
+  sprint_2_avg_power_w?: number;
+  sprint_3_avg_power_w?: number;
+  trim_1_s?: number;
+  trim_2_s?: number;
+  trim_3_s?: number;
+  sprint_1_samples?: PowerSample[];
+  sprint_2_samples?: PowerSample[];
+  sprint_3_samples?: PowerSample[];
+  notes?: string;
+}
+
+export interface MetabolicProfileUpdate {
+  trim_1_s?: number;
+  trim_2_s?: number;
+  trim_3_s?: number;
+  notes?: string;
+}
+
+export interface MetabolicProfile {
+  id: string;
+  athlete_id: string;
+  test_date: string;
+  body_mass_kg: number;
+  data_source: 'ble' | 'manual';
+  resting_lactate_mmol: number;
+  la_peak_1_mmol: number;
+  la_peak_2_mmol: number;
+  la_peak_3_mmol: number;
+  sprint_1_avg_power_w: number | null;
+  sprint_2_avg_power_w: number | null;
+  sprint_3_avg_power_w: number | null;
+  alactic_capacity_j: number | null;
+  max_glycolytic_power_w: number | null;
+  anaerobic_cost: number | null;
+  fatigue_slope_w: number | null;
+  mech_work_sprint_1_j: number | null;
+  mech_work_sprint_2_j: number | null;
+  mech_work_sprint_3_j: number | null;
+  alactic_1_j: number | null;
+  alactic_2_j: number | null;
+  alactic_3_j: number | null;
+  glycolytic_1_j: number | null;
+  glycolytic_2_j: number | null;
+  glycolytic_3_j: number | null;
+  trim_1_s: number;
+  trim_2_s: number;
+  trim_3_s: number;
+  sprint_1_samples: PowerSample[] | null;
+  sprint_2_samples: PowerSample[] | null;
+  sprint_3_samples: PowerSample[] | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MetabolicProfileListItem {
+  id: string;
+  athlete_id: string;
+  test_date: string;
+  body_mass_kg: number;
+  data_source: 'ble' | 'manual';
+  alactic_capacity_j: number | null;
+  max_glycolytic_power_w: number | null;
   created_at: string;
   updated_at: string;
 }

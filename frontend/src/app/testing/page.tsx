@@ -11,7 +11,10 @@ import { PerformanceGraph } from '@/components/PerformanceGraph';
 import { ZScoreRadar } from '@/components/ZScoreRadar';
 import { DataSharingConsent } from '@/components/DataSharingConsent';
 import { SharedDataView } from '@/components/SharedDataView';
+import { VbtProfilesView } from '@/components/testing/VbtProfilesView';
+import { VbtRadar } from '@/components/VbtRadar';
 import { MobilityView } from '@/components/testing/MobilityView';
+import { LactateProfilesView } from '@/components/testing/LactateProfilesView';
 import { AirBikeView } from '@/components/testing/AirBikeView';
 import { EventFormModal } from '@/components/EventFormModal';
 import { ScrollableTabBar } from '@/components/ScrollableTabBar';
@@ -22,7 +25,7 @@ import type { ReferenceGroup, ViewMode, BenchmarkSource } from '@/lib/types';
 const JUMP_METRIC_KEYS = METRIC_DEFINITIONS.filter(m => m.group === 'jump').map(m => m.key);
 const ISOMETRIC_METRIC_KEYS = METRIC_DEFINITIONS.filter(m => m.group === 'isometric').map(m => m.key);
 
-type TestingTab = 'metrics' | 'mobility' | 'isometrics' | 'air-bike';
+type TestingTab = 'metrics' | 'vbt' | 'mobility' | 'isometrics' | 'lactate' | 'air-bike';
 
 export default function TestingPage() {
   const { user, loading } = useAuth();
@@ -108,12 +111,14 @@ export default function TestingPage() {
         <SharedDataView />
       ) : (
         <div className="space-y-4 md:space-y-6">
-          {/* Assessment type tabs */}
+          {/* Metrics / VBT Toggle */}
           <ScrollableTabBar
             tabs={[
               { key: 'metrics', label: 'Jump Assessments' },
+              { key: 'vbt', label: 'VBT Assessments' },
               { key: 'mobility', label: 'Mobility Assessments' },
               { key: 'isometrics', label: 'Isometrics' },
+              { key: 'lactate', label: 'Lactate Profile' },
               { key: 'air-bike', label: 'Air Bike' },
             ]}
             activeTab={testingTab}
@@ -220,6 +225,37 @@ export default function TestingPage() {
                 <NoAthleteSelected message="Select an athlete to view performance data" />
               )}
             </>
+          ) : testingTab === 'vbt' ? (
+            /* VBT Profiles Tab */
+            selectedAthlete ? (
+              <div className="space-y-4 md:space-y-6">
+                <div className="card">
+                  <VbtProfilesView athleteId={selectedAthlete.id} readOnly={readOnly} />
+                </div>
+                <div className="card">
+                  {showRadar ? (
+                    <>
+                      <VbtRadar athleteId={selectedAthlete.id} />
+                      <button
+                        onClick={() => setShowRadar(false)}
+                        className="mt-4 w-full px-4 py-3 min-h-[44px] text-sm font-medium rounded bg-[#2D5585]/30 text-white/60 hover:bg-[#2D5585]/50 transition-colors"
+                      >
+                        Hide Radar
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => setShowRadar(true)}
+                      className="w-full px-4 py-3 min-h-[44px] text-sm font-heading uppercase tracking-wider rounded bg-accent text-[#090A3D] hover:bg-accent/80 transition-colors"
+                    >
+                      Generate VBT Radar
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <NoAthleteSelected message="Select an athlete to view VBT profiles" />
+            )
           ) : testingTab === 'mobility' ? (
             /* Mobility Tab */
             selectedAthlete ? (
@@ -326,6 +362,15 @@ export default function TestingPage() {
               </>
             ) : (
               <NoAthleteSelected message="Select an athlete to view isometric data" />
+            )
+          ) : testingTab === 'lactate' ? (
+            /* Lactate Tab */
+            selectedAthlete ? (
+              <div className="card">
+                <LactateProfilesView athleteId={selectedAthlete.id} readOnly={readOnly} />
+              </div>
+            ) : (
+              <NoAthleteSelected message="Select an athlete to view lactate tests" />
             )
           ) : testingTab === 'air-bike' ? (
             /* Air Bike Tab */

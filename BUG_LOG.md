@@ -168,6 +168,32 @@ Documented bugs, root causes, and fixes for BSAMS.
 
 ---
 
+## BUG-013: VBT peak velocity fallback
+**Date:** 2026-02-06
+**Severity:** Medium
+**Status:** Fixed
+
+**Symptom:** VBT profiles with only peak velocity (no mean velocity) showed no analysis results.
+
+**Root Cause:** VBT engine only used `mean_velocity_ms` for regression. Sets with only `peak_velocity_ms` were skipped, sometimes leaving insufficient data points.
+
+**Fix:** Added fallback logic: if `mean_velocity_ms` is null, use `peak_velocity_ms` instead. Applied to both backend engine and frontend chart.
+
+---
+
+## BUG-014: VBT chart Y-axis scaling
+**Date:** 2026-02-06
+**Severity:** Low
+**Status:** Fixed
+
+**Symptom:** VBT load-velocity chart Y-axis extended far beyond actual data points, making the chart difficult to read.
+
+**Root Cause:** Y-axis scaled to the regression intercept (velocity at zero load), which can be much higher than actual measured velocities.
+
+**Fix:** Changed Y-axis to scale based on actual data point velocities rather than the regression intercept value.
+
+---
+
 ## BUG-015: Login rejects users with legacy passwords after security hardening
 **Date:** 2026-02-11
 **Severity:** Critical

@@ -63,7 +63,7 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 const FEATURE_CARDS = [
   {
     title: 'Testing',
-    description: 'Record and analyse jump, mobility, isometric, and air bike assessments.',
+    description: 'Record and analyse jump, VBT, mobility, isometric, lactate, and air bike assessments.',
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
         <path fillRule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H4.598a.75.75 0 00-.75.75v3.634a.75.75 0 001.5 0v-2.033l.312.311a7 7 0 0011.712-3.138.75.75 0 00-1.449-.389zm1.079-7.058a.75.75 0 00-1.5 0v2.033l-.312-.312A7 7 0 002.867 9.225a.75.75 0 001.449.388A5.5 5.5 0 0113.52 7.147l.312.311h-2.433a.75.75 0 000 1.5h3.634a.75.75 0 00.75-.75V4.574z" clipRule="evenodd" />
@@ -236,7 +236,7 @@ function CreateAthleteStep({
 /* ---------- Step 2: Feature Tour ---------- */
 
 const TOUR_ITEMS = [
-  { title: 'Testing', description: 'Record and analyse jump, mobility, isometric, and air bike assessments. View Z-scores and radar plots.' },
+  { title: 'Testing', description: 'Record and analyse jump, VBT, mobility, isometric, lactate, and air bike assessments. View Z-scores and radar plots.' },
   { title: 'Training', description: 'Log sessions, track wellness, monitor training load with ACWR analysis, and assign sessions to athletes.' },
   { title: 'Reports', description: 'Generate comprehensive athlete test reports and export as PDF.' },
   { title: 'Library', description: 'Build your exercise database and create reusable session templates.' },

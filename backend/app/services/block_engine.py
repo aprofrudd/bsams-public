@@ -2,10 +2,12 @@
 
 Handles percentage-based load resolution for training blocks.
 Resolves percent_1rm values to absolute weight_kg per athlete
-using recorded maxes (athlete_maxes).
+using VBT profiles (primary) or manual athlete_maxes (fallback).
 """
 
 from typing import Optional
+
+from app.services.vbt_engine import build_analysis, get_default_mvt
 
 
 def serialize_exercises(exercises: list) -> list[dict]:
@@ -70,7 +72,8 @@ def resolve_percent_1rm(
 ) -> tuple[Optional[float], str]:
     """Resolve percent_1rm to absolute weight for an athlete.
 
-    Looks up the athlete's recorded max in the athlete_maxes table.
+    Checks VBT profile first (latest profile for athlete + exercise),
+    falls back to athlete_maxes table.
 
     Args:
         client: Supabase client.
@@ -79,14 +82,22 @@ def resolve_percent_1rm(
         percent_1rm: Percentage of 1RM (0-100).
 
     Returns:
-        (weight_kg, source) where source is 'manual' or 'missing'.
+        (weight_kg, source) where source is 'vbt', 'manual', or 'missing'.
         weight_kg is None if no 1RM data available.
     """
+    # 1. Try VBT profile (latest for this athlete + exercise)
+    vbt_1rm = _resolve_from_vbt(client, athlete_id, exercise_name)
+    if vbt_1rm is not None:
+        weight = round_to_plate(vbt_1rm * percent_1rm / 100)
+        return (weight, "vbt")
+
+    # 2. Fall back to athlete_maxes
     manual_1rm = _resolve_from_maxes(client, athlete_id, exercise_name)
     if manual_1rm is not None:
         weight = round_to_plate(manual_1rm * percent_1rm / 100)
         return (weight, "manual")
 
+    # 3. No data available
     return (None, "missing")
 
 
@@ -100,13 +111,77 @@ def get_athlete_1rm(
     Same resolution order as resolve_percent_1rm but returns the raw 1RM.
 
     Returns:
-        (max_1rm_kg, source) where source is 'manual' or 'missing'.
+        (max_1rm_kg, source) where source is 'vbt', 'manual', or 'missing'.
     """
+    vbt_1rm = _resolve_from_vbt(client, athlete_id, exercise_name)
+    if vbt_1rm is not None:
+        return (vbt_1rm, "vbt")
+
     manual_1rm = _resolve_from_maxes(client, athlete_id, exercise_name)
     if manual_1rm is not None:
         return (manual_1rm, "manual")
 
     return (None, "missing")
+
+
+def _resolve_from_vbt(
+    client,
+    athlete_id: str,
+    exercise_name: str,
+) -> Optional[float]:
+    """Resolve 1RM from latest VBT profile for athlete + exercise.
+
+    Returns estimated_1rm_kg or None.
+    """
+    # Find latest VBT profile for this athlete + exercise
+    profile_resp = (
+        client.table("vbt_profiles")
+        .select("id, exercise_name, mvt_override")
+        .eq("athlete_id", athlete_id)
+        .ilike("exercise_name", exercise_name)
+        .order("created_at", desc=True)
+        .limit(1)
+        .execute()
+    )
+    if not profile_resp.data:
+        return None
+
+    profile = profile_resp.data[0]
+
+    # Load sets for this profile
+    sets_resp = (
+        client.table("vbt_sets")
+        .select("load_kg, mean_velocity_ms, peak_velocity_ms")
+        .eq("profile_id", profile["id"])
+        .order("load_kg")
+        .execute()
+    )
+    if not sets_resp.data or len(sets_resp.data) < 2:
+        return None
+
+    # Build load-velocity data (mean_velocity preferred, peak fallback)
+    loads = []
+    velocities = []
+    for s in sets_resp.data:
+        velocity = s.get("mean_velocity_ms") or s.get("peak_velocity_ms")
+        if velocity is not None and s.get("load_kg") is not None:
+            loads.append(float(s["load_kg"]))
+            velocities.append(float(velocity))
+
+    if len(loads) < 2:
+        return None
+
+    # Get MVT for this exercise
+    mvt = get_default_mvt(profile["exercise_name"])
+    if profile.get("mvt_override"):
+        mvt = float(profile["mvt_override"])
+
+    # Build analysis
+    analysis = build_analysis(loads, velocities, mvt)
+    if analysis is None or analysis.estimated_1rm_kg is None:
+        return None
+
+    return analysis.estimated_1rm_kg
 
 
 def _resolve_from_maxes(

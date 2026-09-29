@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { eventsApi, airBikeApi } from '@/lib/api';
+import { eventsApi, vbtApi, lactateApi, airBikeApi } from '@/lib/api';
 import { METRIC_BY_KEY } from '@/lib/metricRegistry';
-import type { PerformanceEvent, AirBikeTestListItem } from '@/lib/types';
+import type { PerformanceEvent, VbtProfileListItem, LactateTestListItem, AirBikeTestListItem } from '@/lib/types';
 
 interface TestResultsSummaryProps {
   athleteId: string;
@@ -41,8 +41,10 @@ export function TestResultsSummary({ athleteId }: TestResultsSummaryProps) {
     try {
       setLoading(true);
 
-      const [events, airBikeTests] = await Promise.all([
+      const [events, vbtProfiles, lactateTests, airBikeTests] = await Promise.all([
         eventsApi.listForAthlete(athleteId).catch(() => [] as PerformanceEvent[]),
+        vbtApi.listProfiles(athleteId).catch(() => [] as VbtProfileListItem[]),
+        lactateApi.listTests(athleteId).catch(() => [] as LactateTestListItem[]),
         airBikeApi.listTests(athleteId).catch(() => [] as AirBikeTestListItem[]),
       ]);
 
@@ -60,6 +62,32 @@ export function TestResultsSummary({ athleteId }: TestResultsSummaryProps) {
         unit: 'cm',
         date: cmjEvents.length > 0 ? cmjEvents[0].event_date : null,
         higherIsBetter: cmjDef?.higherIsBetter ?? true,
+      });
+
+      // VBT 1RM — latest profile with analysis
+      const vbtWithAnalysis = vbtProfiles
+        .filter((p) => p.analysis?.estimated_1rm_kg != null)
+        .sort((a, b) => b.profile_date.localeCompare(a.profile_date));
+      results.push({
+        label: 'Est. 1RM',
+        value: vbtWithAnalysis.length > 0 ? vbtWithAnalysis[0].analysis!.estimated_1rm_kg : null,
+        previousValue: vbtWithAnalysis.length > 1 ? vbtWithAnalysis[1].analysis!.estimated_1rm_kg : null,
+        unit: 'kg',
+        date: vbtWithAnalysis.length > 0 ? vbtWithAnalysis[0].profile_date : null,
+        higherIsBetter: true,
+      });
+
+      // Lactate LT2 — latest test with lt2_value
+      const lt2Tests = lactateTests
+        .filter((t) => t.lt2_value != null)
+        .sort((a, b) => b.test_date.localeCompare(a.test_date));
+      results.push({
+        label: 'LT2 Threshold',
+        value: lt2Tests.length > 0 ? lt2Tests[0].lt2_value : null,
+        previousValue: lt2Tests.length > 1 ? lt2Tests[1].lt2_value : null,
+        unit: lt2Tests.length > 0 ? (lt2Tests[0].test_type === 'running' ? 'km/h' : 'W') : '',
+        date: lt2Tests.length > 0 ? lt2Tests[0].test_date : null,
+        higherIsBetter: true,
       });
 
       // Air Bike Peak Power — latest test max power

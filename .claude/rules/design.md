@@ -21,7 +21,7 @@
 ```
 frontend/
 ├── app/
-│   ├── testing/       # Testing dashboard (CMJ/SJ/EUR/RSI, Mobility, Isometrics, Air Bike)
+│   ├── testing/       # Testing dashboard (CMJ/SJ/EUR/RSI, VBT, Mobility, Isometrics, Lactate, Air Bike)
 │   ├── training/      # Training sessions, wellness, load analysis
 │   ├── library/       # Exercise database + session templates
 │   ├── upload/        # CSV upload
@@ -37,7 +37,7 @@ frontend/
 │   ├── privacy/       # Privacy policy page (GDPR)
 │   └── terms/         # Terms of service page
 ├── components/
-│   ├── testing/       # Mobility, Air Bike and BLE Recordings views and forms
+│   ├── testing/       # VBT, Mobility, Lactate, Air Bike, BLE Recordings, Metabolic Profiling views and forms
 │   ├── training/      # Session, Wellness, Load, Exercise, Timer, TemplateSessionModal components
 │   ├── library/       # Exercise library and template management
 │   ├── programs/      # ProgramCard, ProgramDetailModal, ProgramFormModal, ProgramTemplateFormModal
@@ -48,6 +48,8 @@ frontend/
 └── lib/
     ├── contexts/      # AthleteContext
     ├── metricRegistry.ts   # Central metric definitions (mirrors backend)
+    ├── lactateAnalysis.ts  # Client-side LT1/LT2 breakpoint detection
+    ├── metabolicEngine.ts  # Client-side Ferretti/di Prampero metabolic calculations
     ├── bleProtocol.ts      # FTMS Indoor Bike Data BLE parser
     ├── hooks/              # useBleConnection, useBleRecorder, useMetabolicProtocol, useWakeLock
     └── ...            # API client, auth context, hooks, utils

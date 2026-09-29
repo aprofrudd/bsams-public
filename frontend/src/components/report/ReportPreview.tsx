@@ -4,9 +4,11 @@ import { forwardRef } from 'react';
 import { ReportHeader } from './ReportHeader';
 import { ReportJumpSection } from './ReportJumpSection';
 import { ReportIsometricSection } from './ReportIsometricSection';
+import { ReportVbtSection } from './ReportVbtSection';
 import { ReportMobilitySection } from './ReportMobilitySection';
+import { ReportLactateSection } from './ReportLactateSection';
 import { ReportAirBikeSection } from './ReportAirBikeSection';
-import type { Athlete, PerformanceEvent, ZScoreResult, MovementAssessment, AirBikeTest } from '@/lib/types';
+import type { Athlete, PerformanceEvent, ZScoreResult, VbtProfile, MovementAssessment, LactateTest, AirBikeTest } from '@/lib/types';
 
 export interface ReportData {
   athlete: Athlete;
@@ -14,7 +16,9 @@ export interface ReportData {
   jumpZScores: Record<string, ZScoreResult> | null;
   isometricEvents: PerformanceEvent[];
   isometricZScores: Record<string, ZScoreResult> | null;
+  vbtProfiles: VbtProfile[];
   mobilityAssessments: MovementAssessment[];
+  lactateTests: LactateTest[];
   airBikeTests: AirBikeTest[];
 }
 
@@ -57,8 +61,16 @@ export const ReportPreview = forwardRef<HTMLDivElement, ReportPreviewProps>(
           <ReportIsometricSection events={data.isometricEvents} zScores={data.isometricZScores} notes={notes.isometrics} />
         )}
 
+        {isEnabled('vbt') && (
+          <ReportVbtSection profiles={data.vbtProfiles} notes={notes.vbt} />
+        )}
+
         {isEnabled('mobility') && (
           <ReportMobilitySection assessments={data.mobilityAssessments} notes={notes.mobility} />
+        )}
+
+        {isEnabled('lactate') && (
+          <ReportLactateSection tests={data.lactateTests} notes={notes.lactate} />
         )}
 
         {isEnabled('air_bike') && (

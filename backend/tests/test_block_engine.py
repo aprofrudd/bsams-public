@@ -9,6 +9,7 @@ from app.services.block_engine import (
     resolve_percent_1rm,
     round_to_plate,
     _resolve_from_maxes,
+    _resolve_from_vbt,
 )
 
 
@@ -52,6 +53,116 @@ class TestRoundToPlate:
 
 
 
+class TestResolveFromVbt:
+    """Tests for VBT 1RM resolution."""
+
+    def test_resolves_from_vbt_profile(self):
+        """Should compute 1RM from VBT profile data."""
+        mock_client = MagicMock()
+
+        # Profile query returns a profile
+        mock_profile_resp = MagicMock()
+        mock_profile_resp.data = [
+            {"id": "profile-1", "exercise_name": "Back Squat", "mvt_override": None}
+        ]
+
+        # Sets query returns load-velocity data
+        mock_sets_resp = MagicMock()
+        mock_sets_resp.data = [
+            {"load_kg": 60, "mean_velocity_ms": 0.80, "peak_velocity_ms": 1.0},
+            {"load_kg": 80, "mean_velocity_ms": 0.60, "peak_velocity_ms": 0.85},
+            {"load_kg": 100, "mean_velocity_ms": 0.40, "peak_velocity_ms": 0.65},
+        ]
+
+        # Chain mock calls
+        table_mock = MagicMock()
+        mock_client.table.return_value = table_mock
+        table_mock.select.return_value = table_mock
+        table_mock.eq.return_value = table_mock
+        table_mock.ilike.return_value = table_mock
+        table_mock.order.return_value = table_mock
+        table_mock.limit.return_value = table_mock
+        table_mock.execute.side_effect = [mock_profile_resp, mock_sets_resp]
+
+        result = _resolve_from_vbt(mock_client, "athlete-1", "Back Squat")
+        assert result is not None
+        assert result > 0
+
+    def test_returns_none_when_no_profile(self):
+        """Should return None if no VBT profile exists."""
+        mock_client = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.data = []
+
+        table_mock = MagicMock()
+        mock_client.table.return_value = table_mock
+        table_mock.select.return_value = table_mock
+        table_mock.eq.return_value = table_mock
+        table_mock.ilike.return_value = table_mock
+        table_mock.order.return_value = table_mock
+        table_mock.limit.return_value = table_mock
+        table_mock.execute.return_value = mock_resp
+
+        result = _resolve_from_vbt(mock_client, "athlete-1", "Back Squat")
+        assert result is None
+
+    def test_returns_none_when_insufficient_sets(self):
+        """Should return None if < 2 sets."""
+        mock_client = MagicMock()
+
+        mock_profile_resp = MagicMock()
+        mock_profile_resp.data = [
+            {"id": "profile-1", "exercise_name": "Back Squat", "mvt_override": None}
+        ]
+
+        mock_sets_resp = MagicMock()
+        mock_sets_resp.data = [
+            {"load_kg": 60, "mean_velocity_ms": 0.80, "peak_velocity_ms": 1.0},
+        ]
+
+        table_mock = MagicMock()
+        mock_client.table.return_value = table_mock
+        table_mock.select.return_value = table_mock
+        table_mock.eq.return_value = table_mock
+        table_mock.ilike.return_value = table_mock
+        table_mock.order.return_value = table_mock
+        table_mock.limit.return_value = table_mock
+        table_mock.execute.side_effect = [mock_profile_resp, mock_sets_resp]
+
+        result = _resolve_from_vbt(mock_client, "athlete-1", "Back Squat")
+        assert result is None
+
+    def test_resolves_from_vbt_peak_velocity_fallback(self):
+        """Should resolve 1RM using peak_velocity_ms when mean_velocity_ms is None."""
+        mock_client = MagicMock()
+
+        mock_profile_resp = MagicMock()
+        mock_profile_resp.data = [
+            {"id": "profile-1", "exercise_name": "Back Squat", "mvt_override": None}
+        ]
+
+        # All sets have mean_velocity_ms=None but valid peak_velocity_ms
+        mock_sets_resp = MagicMock()
+        mock_sets_resp.data = [
+            {"load_kg": 60, "mean_velocity_ms": None, "peak_velocity_ms": 1.10},
+            {"load_kg": 80, "mean_velocity_ms": None, "peak_velocity_ms": 0.85},
+            {"load_kg": 100, "mean_velocity_ms": None, "peak_velocity_ms": 0.65},
+        ]
+
+        table_mock = MagicMock()
+        mock_client.table.return_value = table_mock
+        table_mock.select.return_value = table_mock
+        table_mock.eq.return_value = table_mock
+        table_mock.ilike.return_value = table_mock
+        table_mock.order.return_value = table_mock
+        table_mock.limit.return_value = table_mock
+        table_mock.execute.side_effect = [mock_profile_resp, mock_sets_resp]
+
+        result = _resolve_from_vbt(mock_client, "athlete-1", "Back Squat")
+        assert result is not None
+        assert result > 0
+
+
 class TestResolveFromMaxes:
     """Tests for manual max resolution."""
 
@@ -91,9 +202,47 @@ class TestResolveFromMaxes:
 class TestResolvePercent1rm:
     """Tests for the combined resolution function."""
 
-    def test_resolves_from_manual_max(self):
-        """Resolves from the athlete's recorded max."""
+    def test_resolves_via_vbt(self):
+        """VBT-first resolution produces correct weight."""
         mock_client = MagicMock()
+
+        # VBT profile found
+        mock_profile_resp = MagicMock()
+        mock_profile_resp.data = [
+            {"id": "p1", "exercise_name": "Back Squat", "mvt_override": None}
+        ]
+
+        # 3 sets: slope ~ -0.01, intercept ~ 1.4
+        mock_sets_resp = MagicMock()
+        mock_sets_resp.data = [
+            {"load_kg": 60, "mean_velocity_ms": 0.80, "peak_velocity_ms": None},
+            {"load_kg": 80, "mean_velocity_ms": 0.60, "peak_velocity_ms": None},
+            {"load_kg": 100, "mean_velocity_ms": 0.40, "peak_velocity_ms": None},
+        ]
+
+        table_mock = MagicMock()
+        mock_client.table.return_value = table_mock
+        table_mock.select.return_value = table_mock
+        table_mock.eq.return_value = table_mock
+        table_mock.ilike.return_value = table_mock
+        table_mock.order.return_value = table_mock
+        table_mock.limit.return_value = table_mock
+        table_mock.execute.side_effect = [mock_profile_resp, mock_sets_resp]
+
+        weight, source = resolve_percent_1rm(mock_client, "a1", "Back Squat", 80.0)
+        assert source == "vbt"
+        assert weight is not None
+        assert weight > 0
+        # Should be rounded to 2.5kg increment
+        assert weight % 2.5 == 0
+
+    def test_falls_back_to_manual(self):
+        """When no VBT, falls back to athlete_maxes."""
+        mock_client = MagicMock()
+
+        # No VBT profile
+        mock_empty = MagicMock()
+        mock_empty.data = []
 
         # Manual max found
         mock_max = MagicMock()
@@ -106,14 +255,14 @@ class TestResolvePercent1rm:
         table_mock.ilike.return_value = table_mock
         table_mock.order.return_value = table_mock
         table_mock.limit.return_value = table_mock
-        table_mock.execute.return_value = mock_max
+        table_mock.execute.side_effect = [mock_empty, mock_max]
 
         weight, source = resolve_percent_1rm(mock_client, "a1", "Back Squat", 80.0)
         assert source == "manual"
         assert weight == 80.0  # 100 * 80% = 80, rounded to 2.5 = 80.0
 
     def test_returns_missing_when_no_data(self):
-        """When there is no recorded max, returns None + missing."""
+        """When neither VBT nor manual max, returns None + missing."""
         mock_client = MagicMock()
 
         mock_empty = MagicMock()
@@ -135,6 +284,36 @@ class TestResolvePercent1rm:
 
 class TestGetAthlete1rm:
     """Tests for the 1RM lookup function."""
+
+    def test_returns_vbt_1rm(self):
+        """When VBT profile exists, returns 1RM from analysis."""
+        mock_client = MagicMock()
+
+        mock_profile_resp = MagicMock()
+        mock_profile_resp.data = [
+            {"id": "p1", "exercise_name": "Back Squat", "mvt_override": None}
+        ]
+
+        mock_sets_resp = MagicMock()
+        mock_sets_resp.data = [
+            {"load_kg": 60, "mean_velocity_ms": 0.80, "peak_velocity_ms": None},
+            {"load_kg": 80, "mean_velocity_ms": 0.60, "peak_velocity_ms": None},
+            {"load_kg": 100, "mean_velocity_ms": 0.40, "peak_velocity_ms": None},
+        ]
+
+        table_mock = MagicMock()
+        mock_client.table.return_value = table_mock
+        table_mock.select.return_value = table_mock
+        table_mock.eq.return_value = table_mock
+        table_mock.ilike.return_value = table_mock
+        table_mock.order.return_value = table_mock
+        table_mock.limit.return_value = table_mock
+        table_mock.execute.side_effect = [mock_profile_resp, mock_sets_resp]
+
+        max_kg, source = get_athlete_1rm(mock_client, "a1", "Back Squat")
+        assert source == "vbt"
+        assert max_kg is not None
+        assert max_kg > 0
 
     def test_returns_missing_when_nothing(self):
         mock_client = MagicMock()

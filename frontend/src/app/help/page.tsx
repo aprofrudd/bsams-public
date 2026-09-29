@@ -113,7 +113,7 @@ export default function HelpPage() {
             </summary>
             <div className="pl-6 pb-2">
               <ul className="list-disc list-inside text-white/80 space-y-2">
-                <li><strong>Testing</strong> — View your jump assessments, mobility screenings, isometrics, and air bike test results.</li>
+                <li><strong>Testing</strong> — View your jump assessments, VBT profiles, mobility screenings, lactate profiles, and air bike test results.</li>
                 <li><strong>My Profile</strong> — View your personal details (managed by your coach).</li>
                 <li><strong>Export My Data</strong> — Download all your data as JSON from the Dashboard or your Profile page.</li>
               </ul>
@@ -572,6 +572,38 @@ export default function HelpPage() {
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-accent transition-transform group-open:rotate-90">
               <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
             </svg>
+            VBT (Velocity-Based Training)
+          </summary>
+          <div className="pl-6 pb-2">
+            <p className="text-white/80 mb-2">
+              VBT profiling builds a load-velocity relationship for an exercise, letting you estimate 1RM and prescribe loads based on target velocities.
+            </p>
+            <ol className="list-decimal list-inside text-white/80 space-y-2 mb-3">
+              <li>Navigate to <strong>Testing</strong> &rarr; <strong>VBT</strong> tab.</li>
+              <li>Click <strong>&quot;+ New Profile&quot;</strong>.</li>
+              <li>Select an <strong>exercise</strong> from the autocomplete (e.g. Trap Bar Deadlift, Back Squat).</li>
+              <li>Add <strong>load-velocity sets</strong> (minimum 2): enter <strong>Load (kg)</strong>, <strong>Mean Velocity (m/s)</strong>, and optionally <strong>Peak Velocity (m/s)</strong>.</li>
+              <li>Click <strong>&quot;Save&quot;</strong>.</li>
+            </ol>
+            <p className="text-white/80 mb-2">
+              The system performs <strong>linear regression</strong> on the load-velocity data and provides:
+            </p>
+            <ul className="list-disc list-inside text-white/80 space-y-1 mb-3">
+              <li><strong>Estimated 1RM</strong> — predicted from the regression line at minimum velocity threshold</li>
+              <li><strong>R&sup2;</strong> — fit quality (closer to 1.0 = better fit)</li>
+              <li><strong>Velocity predictor</strong> — enter a load to predict velocity, or enter a velocity to predict load</li>
+            </ul>
+            <p className="text-white/80">
+              Expand a profile row to see the <strong>load-velocity chart</strong> with regression line and the bidirectional calculator.
+            </p>
+          </div>
+        </details>
+
+        <details className="mb-4 group">
+          <summary className="text-2xl font-heading text-white mb-3 cursor-pointer list-none flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-accent transition-transform group-open:rotate-90">
+              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+            </svg>
             Mobility Assessments
           </summary>
           <div className="pl-6 pb-2">
@@ -625,6 +657,39 @@ export default function HelpPage() {
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-accent transition-transform group-open:rotate-90">
               <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
             </svg>
+            Lactate Profiling
+          </summary>
+          <div className="pl-6 pb-2">
+            <p className="text-white/80 mb-2">
+              Lactate profiling identifies aerobic (LT1) and anaerobic (LT2) thresholds from a graded exercise test.
+            </p>
+            <ol className="list-decimal list-inside text-white/80 space-y-2 mb-3">
+              <li>Navigate to <strong>Testing</strong> &rarr; <strong>Lactate</strong> tab.</li>
+              <li>Click <strong>&quot;+ New Test&quot;</strong>.</li>
+              <li>Choose the test type: <strong>Running</strong> (speed in km/h) or <strong>Cycling</strong> (power in W).</li>
+              <li>Add stages — for each stage enter: <strong>Intensity</strong> (speed or power), <strong>Lactate (mmol/L)</strong>, and optionally <strong>HR</strong> and <strong>RPE</strong>.</li>
+              <li>Click <strong>&quot;Save&quot;</strong>.</li>
+            </ol>
+            <p className="text-white/80 mb-2">
+              Expand a test row to see the <strong>lactate chart</strong> with:
+            </p>
+            <ul className="list-disc list-inside text-white/80 space-y-1 mb-3">
+              <li><strong>Lactate curve</strong> (cyan) and <strong>HR curve</strong> (amber) plotted against intensity</li>
+              <li><strong>&quot;Auto-Detect&quot;</strong> button — finds LT1 and LT2 breakpoints using piecewise regression (requires at least <strong>5 stages</strong>)</li>
+              <li>Editable <strong>LT1</strong> and <strong>LT2</strong> threshold inputs for manual adjustment</li>
+              <li><strong>&quot;Save Thresholds&quot;</strong> to persist the values</li>
+            </ul>
+            <p className="text-white/60 text-sm pl-4 border-l-2 border-accent/30">
+              LT1 (aerobic threshold) is where lactate first rises above baseline. LT2 (anaerobic threshold) is the onset of blood lactate accumulation — the maximum sustainable intensity.
+            </p>
+          </div>
+        </details>
+
+        <details className="mb-4 group">
+          <summary className="text-2xl font-heading text-white mb-3 cursor-pointer list-none flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-accent transition-transform group-open:rotate-90">
+              <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+            </svg>
             Air Bike 30s Sprint Test
           </summary>
           <div className="pl-6 pb-2">
@@ -669,11 +734,13 @@ export default function HelpPage() {
               <li>Navigate to the <strong>Test Report</strong> page from the navigation bar.</li>
               <li>Select an <strong>athlete</strong> from the dropdown.</li>
               <li>Set the <strong>Report Date</strong> (defaults to today). Optionally set <strong>Date Range Start</strong> and <strong>Date Range End</strong> to filter which data is included.</li>
-              <li>Toggle report sections on or off using the <strong>4 checkboxes</strong> (all enabled by default):
+              <li>Toggle report sections on or off using the <strong>6 checkboxes</strong> (all enabled by default):
                 <ul className="list-disc list-inside ml-4 mt-1 space-y-1">
                   <li><strong>Jump Assessments</strong></li>
+                  <li><strong>VBT Assessments</strong></li>
                   <li><strong>Isometrics</strong></li>
                   <li><strong>Mobility Assessments</strong></li>
+                  <li><strong>Lactate Profile</strong></li>
                   <li><strong>Air Bike</strong></li>
                 </ul>
               </li>

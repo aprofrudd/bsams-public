@@ -93,7 +93,7 @@ export function AthleteMaxesPanel({ athleteId, athleteName }: AthleteMaxesPanelP
     <div className="card max-w-2xl">
       <h3 className="text-sm font-medium mb-3">1RM Maxes — {athleteName}</h3>
       <p className="text-xs text-white/40 mb-4">
-        Used for percentage-based loading in training blocks.
+        Used for percentage-based loading in training blocks. VBT-derived values are read-only.
       </p>
 
       {error && (

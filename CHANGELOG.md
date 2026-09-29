@@ -239,12 +239,24 @@ All notable changes to BSAMS (Boxing Science Athlete Management System).
 
 ## [1.16.0] - 2026-02-09
 ### Added
+- **Lactate UX Improvements**
+  - Chart uses line graphs connecting scatter dots for lactate (cyan) and HR (amber)
+  - Threshold editing moved from form to expanded view (Auto-Detect + Save Thresholds)
+  - Chart axis formatting: whole-number X ticks, HR Y-axis in 10s, LT1/LT2 labels insideTopRight
+  - R² badge removed from lactate profile cards
 
 ### Changed
 - Testing tabs renamed: Jump Assessments, VBT Assessments, Mobility Assessments
 
 ## [1.15.0] - 2026-02-09
 ### Added
+- **Lactate Profile Tab**
+  - `lactate_tests` + `lactate_stages` database tables (migration 015)
+  - Piecewise 3-segment regression engine for LT1/LT2 breakpoint auto-detection
+  - Client-side TypeScript port of lactate analysis (`lactateAnalysis.ts`)
+  - Full CRUD API: `/lactate/tests` endpoints + `/detect` for server-side breakpoint detection
+  - Frontend: LactateProfilesView, LactateTestForm, LactateChart (dual-axis: lactate + HR)
+  - 32 new backend tests (lactate engine: 19, lactate router: 13)
 
 ## [1.14.0] - 2026-02-08
 ### Added
@@ -286,9 +298,19 @@ All notable changes to BSAMS (Boxing Science Athlete Management System).
 
 ## [1.12.0] - 2026-02-06
 ### Fixed
+- VBT chart Y-axis now scales to actual data point velocities (not regression intercept)
+- VBT analysis uses peak velocity as fallback when mean velocity absent
 
 ## [1.11.0] - 2026-02-05
 ### Added
+- **VBT Load-Velocity Profiling System**
+  - `vbt_profiles` + `vbt_sets` database tables (migration 012)
+  - VBT engine: linear regression, 1RM prediction via MVT, bidirectional prediction
+  - Default MVTs per exercise (Trap Bar Deadlift 0.30, Bench Press 0.17, etc.)
+  - Full CRUD API: `/vbt/profiles` endpoints + predict endpoint
+  - Frontend: VbtProfilesView, VbtProfileForm, VbtChart, VbtCalculator
+  - Testing page split into Metrics / VBT Profiles toggle
+  - 32 new backend tests
 
 ## [1.10.0] - 2026-02-04
 ### Added

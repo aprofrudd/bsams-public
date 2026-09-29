@@ -133,6 +133,14 @@ Once the server is running:
 - `DELETE /api/v1/session-templates/{id}` — Delete template
 - `POST /api/v1/session-templates/{id}/apply` — Apply template to session
 
+### VBT Profiles (requires authentication)
+- `POST /api/v1/vbt/profiles` — Create VBT profile with sets
+- `GET /api/v1/vbt/profiles/athlete/{id}` — List profiles for athlete
+- `GET /api/v1/vbt/profiles/{id}` — Get profile with sets + analysis
+- `PATCH /api/v1/vbt/profiles/{id}` — Update profile
+- `DELETE /api/v1/vbt/profiles/{id}` — Delete profile
+- `POST /api/v1/vbt/profiles/{id}/predict` — Bidirectional prediction (velocity/load)
+
 ### Movement Assessments (requires authentication)
 - `POST /api/v1/assessments/` — Create movement assessment (NASM checklist)
 - `GET /api/v1/assessments/athlete/{id}` — List assessments for athlete
@@ -141,6 +149,14 @@ Once the server is running:
 - `DELETE /api/v1/assessments/{id}` — Delete assessment (CASCADE deletes photos)
 - `POST /api/v1/assessments/{id}/photos` — Upload assessment photo (multipart/form-data)
 - `DELETE /api/v1/assessments/photos/{id}` — Delete single photo
+
+### Lactate Tests (requires authentication)
+- `POST /api/v1/lactate/tests` — Create lactate test with stages
+- `GET /api/v1/lactate/tests/athlete/{id}` — List tests for athlete
+- `GET /api/v1/lactate/tests/{id}` — Get test with stages + analysis
+- `PATCH /api/v1/lactate/tests/{id}` — Update test
+- `DELETE /api/v1/lactate/tests/{id}` — Delete test
+- `POST /api/v1/lactate/tests/{id}/detect` — Auto-detect LT1/LT2 breakpoints
 
 ### Air Bike Tests (requires authentication)
 - `POST /api/v1/air-bike/tests` — Create air bike test with sprints
@@ -177,7 +193,7 @@ Once the server is running:
 
 ## Testing
 
-Run all tests (about 1,270):
+Run all tests (about 1,430):
 ```bash
 python -m pytest tests/ -v
 ```
@@ -214,7 +230,9 @@ backend/
 │   │   ├── wellness.py            # Wellness entry CRUD (Hooper Index)
 │   │   ├── exercise_library.py    # Exercise library CRUD
 │   │   ├── session_templates.py   # Session template CRUD + apply
+│   │   ├── vbt.py                 # VBT profile CRUD + predict
 │   │   ├── assessments.py         # Movement assessment CRUD + photo upload
+│   │   ├── lactate.py             # Lactate test CRUD + LT1/LT2 detect
 │   │   ├── air_bike.py            # Air bike test CRUD + sprint management
 │   │   ├── consent.py             # Data sharing consent
 │   │   ├── consent_tracking.py    # GDPR user consent
@@ -228,6 +246,8 @@ backend/
 │   │   ├── benchmarks.py          # Mass banding, reference group logic
 │   │   ├── admin_pool.py          # Admin/shared athlete queries
 │   │   ├── training_load.py       # sRPE, Monotony, Strain, ACWR calculation
+│   │   ├── vbt_engine.py          # Linear regression, 1RM prediction, MVT
+│   │   ├── lactate_engine.py      # Piecewise regression, LT1/LT2 detection
 │   │   └── audit.py               # Audit logging (log_event, log_deletion)
 │   └── schemas/
 │       ├── athlete.py             # Athlete models
@@ -241,7 +261,9 @@ backend/
 │       ├── exercise_prescription.py # Exercise prescription models
 │       ├── exercise_library.py    # Exercise library models
 │       ├── session_template.py    # Session template models
+│       ├── vbt_profile.py         # VBT profile + set models
 │       ├── assessment.py          # Movement assessment + photo models
+│       ├── lactate_test.py        # Lactate test + stage models
 │       ├── air_bike.py            # Air bike test + sprint models
 │       ├── metric_registry.py     # Central metric definitions
 │       └── invitation.py          # Athlete invitation models

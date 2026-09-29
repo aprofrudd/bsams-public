@@ -6,7 +6,9 @@ import { useAuth } from '@/lib/auth';
 import { useAthleteContext } from '@/lib/contexts/AthleteContext';
 import {
   eventsApi,
+  vbtApi,
   assessmentApi,
+  lactateApi,
   airBikeApi,
   analysisApi,
   reportsApi,
@@ -17,7 +19,9 @@ import type { ReportData } from '@/components/report/ReportPreview';
 import { METRIC_DEFINITIONS } from '@/lib/metricRegistry';
 import type {
   PerformanceEvent,
+  VbtProfile,
   MovementAssessment,
+  LactateTest,
   AirBikeTest,
   TestReportListItem,
   ZScoreResult,
@@ -28,8 +32,10 @@ const ISOMETRIC_KEYS = METRIC_DEFINITIONS.filter(m => m.group === 'isometric').m
 
 const SECTION_DEFS = [
   { key: 'jump', label: 'Jump Assessments' },
+  { key: 'vbt', label: 'VBT Assessments' },
   { key: 'isometrics', label: 'Isometrics' },
   { key: 'mobility', label: 'Mobility Assessments' },
+  { key: 'lactate', label: 'Lactate Profile' },
   { key: 'air_bike', label: 'Air Bike' },
 ];
 
@@ -152,17 +158,21 @@ export default function TestReportPage() {
         : undefined;
 
       // Parallel fetch all data sources
-      const [eventsResult, assessmentsResult, airBikeResult] =
+      const [eventsResult, vbtResult, assessmentsResult, lactateResult, airBikeResult] =
         await Promise.allSettled([
           eventsApi.listForAthlete(athleteId, dateOpts),
+          vbtApi.listProfiles(athleteId),
           assessmentApi.listAssessments(athleteId),
+          lactateApi.listTests(athleteId),
           airBikeApi.listTests(athleteId),
         ]);
 
       // Collect warnings for failed data sources
       const sourceNames: [PromiseSettledResult<any>, string][] = [
         [eventsResult, 'Performance Events'],
+        [vbtResult, 'VBT Profiles'],
         [assessmentsResult, 'Movement Assessments'],
+        [lactateResult, 'Lactate Tests'],
         [airBikeResult, 'Air Bike Tests'],
       ];
       const warnings = sourceNames
@@ -171,13 +181,15 @@ export default function TestReportPage() {
       setDataWarnings(warnings);
 
       const events = eventsResult.status === 'fulfilled' ? eventsResult.value : [];
+      const vbtListItems = vbtResult.status === 'fulfilled' ? vbtResult.value : [];
       const assessmentList = assessmentsResult.status === 'fulfilled' ? assessmentsResult.value : [];
+      const lactateList = lactateResult.status === 'fulfilled' ? lactateResult.value : [];
       const airBikeList = airBikeResult.status === 'fulfilled' ? airBikeResult.value : [];
 
       // Split events
       const { jumpEvents, isometricEvents } = splitEvents(events);
 
-      // Date-filter AirBike/Assessments client-side if date range set
+      // Date-filter VBT/Lactate/AirBike/Assessments client-side if date range set
       const filterByDate = <T,>(items: T[], dateField: string): T[] => {
         if (!dateRangeStart || !dateRangeEnd) return items;
         return items.filter(item => {
@@ -186,10 +198,30 @@ export default function TestReportPage() {
         });
       };
 
+      const filteredVbt = filterByDate(vbtListItems, 'profile_date');
       const filteredAssessments = filterByDate(assessmentList, 'assessment_date');
+      const filteredLactate = filterByDate(lactateList, 'test_date');
       const filteredAirBike = filterByDate(airBikeList, 'test_date');
 
       // Fetch full detail for the most recent items (for charts)
+      const vbtProfiles: VbtProfile[] = [];
+      if (sections.vbt !== false && filteredVbt.length > 0) {
+        // Get unique exercises, most recent profile each
+        const byExercise = new Map<string, string>();
+        for (const p of filteredVbt) {
+          if (!byExercise.has(p.exercise_name)) {
+            byExercise.set(p.exercise_name, p.id);
+          }
+        }
+        const profilePromises = Array.from(byExercise.values()).map(id =>
+          vbtApi.getProfile(id).catch(() => null)
+        );
+        const profileResults = await Promise.all(profilePromises);
+        for (const p of profileResults) {
+          if (p) vbtProfiles.push(p);
+        }
+      }
+
       const mobilityAssessments: MovementAssessment[] = [];
       if (sections.mobility !== false && filteredAssessments.length > 0) {
         // Get most recent of each assessment type
@@ -206,6 +238,15 @@ export default function TestReportPage() {
         for (const a of assessResults) {
           if (a) mobilityAssessments.push(a);
         }
+      }
+
+      const lactateTests: LactateTest[] = [];
+      if (sections.lactate !== false && filteredLactate.length > 0) {
+        const mostRecent = filteredLactate[0];
+        try {
+          const full = await lactateApi.getTest(mostRecent.id);
+          lactateTests.push(full);
+        } catch { /* skip */ }
       }
 
       const airBikeTests: AirBikeTest[] = [];
@@ -231,7 +272,9 @@ export default function TestReportPage() {
         jumpZScores,
         isometricEvents,
         isometricZScores,
+        vbtProfiles,
         mobilityAssessments,
+        lactateTests,
         airBikeTests,
       });
       setMode('preview');
